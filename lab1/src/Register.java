@@ -20,7 +20,6 @@ public class Register extends Operation {
         else {
             server.getDNSTable().put(name, IP);
             System.out.println(this + " : Name registered Successfully");
-            System.out.println(server.getDNSTable());
             return String.valueOf(server.getDNSTable().keySet().size() - 1);
         }
     }
