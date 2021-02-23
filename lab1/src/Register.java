@@ -10,4 +10,18 @@ public class Register extends Operation {
     public String toString() {
         return "REGISTER " + this.name + " " + this.IP;
     }
+
+    @Override
+    public String execute(Server server) {
+        if (server.getDNSTable().containsKey(name)) {
+            System.out.println(this + " : Name already registered!");
+            return "-1";
+        }
+        else {
+            server.getDNSTable().put(name, IP);
+            System.out.println(this + " : Name registered Successfully");
+            System.out.println(server.getDNSTable());
+            return String.valueOf(server.getDNSTable().keySet().size() - 1);
+        }
+    }
 }
