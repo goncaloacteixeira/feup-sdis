@@ -14,12 +14,12 @@ public class Register extends Operation {
     @Override
     public String execute(Server server) {
         if (server.getDNSTable().containsKey(name)) {
-            System.out.println(this + " : Name already registered!");
+            System.out.println(this + " :: -1");
             return "-1";
         }
         else {
             server.getDNSTable().put(name, IP);
-            System.out.println(this + " : Name registered Successfully");
+            System.out.println(this + " :: " + (server.getDNSTable().keySet().size() - 1));
             return String.valueOf(server.getDNSTable().keySet().size() - 1);
         }
     }

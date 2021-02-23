@@ -1,30 +1,25 @@
 import java.net.InetAddress;
 
 public class ClientArguments {
-    private final InetAddress address;
-    private final int port;
+    private final InetAddress multicastAddress;
+    private final int multicastPort;
     private final Operation operation;
 
-    public ClientArguments(InetAddress address, int port, Operation operation) {
-        this.address = address;
-        this.port = port;
+    public ClientArguments(InetAddress multicastAddress, int multicastPort, Operation operation) {
+        this.multicastAddress = multicastAddress;
+        this.multicastPort = multicastPort;
         this.operation = operation;
     }
 
-    public InetAddress getAddress() {
-        return address;
+    public InetAddress getMulticastAddress() {
+        return multicastAddress;
     }
 
-    public int getPort() {
-        return port;
+    public int getMulticastPort() {
+        return multicastPort;
     }
 
     public Operation getOperation() {
         return operation;
-    }
-
-    @Override
-    public String toString() {
-        return "Address: " + address + "\nPort: " + port + "\nOperation: " + operation;
     }
 }

@@ -80,7 +80,7 @@ public class Server {
         try {
             MulticastSocket multicastSocket = new MulticastSocket(this.multicastPort);
             multicastSocket.joinGroup(this.multicastAddress);
-            String msg = "multicast: " + this.multicastAddress + " " + this.multicastPort + " : " + InetAddress.getLocalHost() + " " + this.servicePort;
+            String msg = InetAddress.getLocalHost().getHostAddress() + " " + this.servicePort;
 
             TimerTask timerTask = new TimerTask() {
                 @Override
@@ -88,7 +88,7 @@ public class Server {
                     DatagramPacket multicastPacket = new DatagramPacket(msg.getBytes(), msg.length(), multicastAddress, multicastPort);
                     try {
                         multicastSocket.send(multicastPacket);
-                        System.out.println(msg);
+                        System.out.println("multicast: " + multicastAddress + ":" + multicastPort + " : " + InetAddress.getLocalHost() + ":" + servicePort);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

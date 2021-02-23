@@ -1,24 +1,25 @@
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class Client {
     private DatagramSocket socket;
-    private final int PORT;
-    private final InetAddress address;
+    private final int multicastPort;
+    private final InetAddress multicastAddress;
+    private InetAddress serviceAddress;
+    private int servicePort;
     private final Operation operation;
 
-    public Client(int PORT, InetAddress address, Operation operation) {
-        this.PORT = PORT;
-        this.address = address;
+    public Client(int multicastPort, InetAddress multicastAddress, Operation operation) {
+        this.multicastPort = multicastPort;
+        this.multicastAddress = multicastAddress;
         this.operation = operation;
     }
 
     public static void main(String[] args) {
         if (args.length < 4) {
-            System.out.println("Usage: java Client <host> <port> <oper> <opnd>*");
+            System.out.println("Usage: java Client <mcast_addr> <mcast_port> <oper> <opnd> *");
             return;
         }
         ClientArguments clientArguments = Client.parseArgs(args);
@@ -26,17 +27,15 @@ public class Client {
             System.out.println("Error parsing Arguments");
             return;
         }
-        System.out.println("Client Arguments parsed");
-        System.out.println(clientArguments);
 
-        Client client = new Client(clientArguments.getPort(), clientArguments.getAddress(), clientArguments.getOperation());
+        Client client = new Client(clientArguments.getMulticastPort(), clientArguments.getMulticastAddress(), clientArguments.getOperation());
         client.start();
     }
 
     private static ClientArguments parseArgs(String[] args) {
         try {
-            InetAddress address = InetAddress.getByName(args[0]);
-            int port = Integer.parseInt(args[1]);
+            InetAddress multicastAdress = InetAddress.getByName(args[0]);
+            int multicastPort = Integer.parseInt(args[1]);
             Operation operation;
             switch (args[2]) {
                 case "REGISTER":
@@ -48,7 +47,7 @@ public class Client {
                 default:
                     throw new Exception("Error on operation code");
             }
-            return new ClientArguments(address, port, operation);
+            return new ClientArguments(multicastAdress, multicastPort, operation);
 
         } catch (NumberFormatException e) {
             System.out.println("Error on port number");
@@ -58,15 +57,36 @@ public class Client {
         return null;
     }
 
+    private void parseMulticastResponse(String data) {
+        String[] split = data.split(" ");
+        try {
+            this.serviceAddress = InetAddress.getByName(split[0].trim());
+            this.servicePort = Integer.parseInt(split[1].trim());
+        } catch (UnknownHostException | NumberFormatException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void start() {
         try {
+            // get the service address and port
+            System.out.println("Trying to receive multicast reply from " + this.multicastAddress + ":" + this.multicastPort);
+            MulticastSocket s = new MulticastSocket(this.multicastPort);
+            s.joinGroup(this.multicastAddress);
+            DatagramPacket recv = new DatagramPacket(new byte[1024], 1024);
+            s.receive(recv);
+            this.parseMulticastResponse(new String(recv.getData()));
+            s.leaveGroup(this.multicastAddress);
+
+            System.out.println("multicast: " + this.multicastAddress + ":" + this.multicastPort + " : " + this.serviceAddress + ":" + this.servicePort);
+
             byte[] buffer = this.operation.toString().getBytes(StandardCharsets.UTF_8);
 
             this.socket = new DatagramSocket();
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, this.address, this.PORT);
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, this.serviceAddress, this.servicePort);
 
             this.socket.send(packet);
-            System.out.println("Sent packet!");
+            System.out.println("Sent request!");
 
             this.socket.setSoTimeout(2000);
 
@@ -74,7 +94,7 @@ public class Client {
             this.socket.receive(reply);
 
             System.out.println("Reply Received");
-            System.out.println(new String(reply.getData()));
+            System.out.println(this.operation + " :: " + new String(reply.getData()));
         } catch (IOException e) {
             e.printStackTrace();
         }
