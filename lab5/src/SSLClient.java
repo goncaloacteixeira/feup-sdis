@@ -51,6 +51,9 @@ public class SSLClient {
             socket.setEnabledCipherSuites(cipherSuites);
         }
 
+        System.out.println("Session: " + socket.getSession());
+        System.out.println("Protocol: " + socket.getSession().getProtocol());
+
         System.out.println("Cipher Suites:");
         System.out.println(Arrays.toString(socket.getEnabledCipherSuites()));
         System.out.println("Protocols:");
